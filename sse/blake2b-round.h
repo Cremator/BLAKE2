@@ -31,51 +31,53 @@
     (-(c) == 32) ? _mm_shuffle_epi32((x), _MM_SHUFFLE(2,3,0,1))  \
     : (-(c) == 24) ? _mm_shuffle_epi8((x), r24) \
     : (-(c) == 16) ? _mm_shuffle_epi8((x), r16) \
-    : (-(c) == 63) ? _mm_xor_si128(_mm_srli_epi64((x), -(c)), _mm_add_epi64((x), (x)))  \
-    : _mm_xor_si128(_mm_srli_epi64((x), -(c)), _mm_slli_epi64((x), 64-(-(c))))
+    : (-(c) == 63) ? vec_bitxor1q(_mm_srli_epi64((x), -(c)), vec_add2sd((x), (x)))  \
+    : vec_bitxor1q(_mm_srli_epi64((x), -(c)), _mm_slli_epi64((x), 64-(-(c))))
 #else
-#define _mm_roti_epi64(r, c) _mm_xor_si128(_mm_srli_epi64( (r), -(c) ),_mm_slli_epi64( (r), 64-(-(c)) ))
+#define _mm_roti_epi64(r, c) vec_bitxor1q(_mm_srli_epi64( (r), -(c) ),_mm_slli_epi64( (r), 64-(-(c)) ))
 #endif
 #else
 /* ... */
 #endif
-
+#ifdef __VSX__
+#define _mm_roti_epi64(r, c) vec_bitxor1q(vec_shiftrightimmediate2sd( (r), -(c) ),vec_shiftleftimmediate2sd( (r), 64-(-(c)) ))
+#endif
 
 
 #define G1(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h,b0,b1) \
-  row1l = _mm_add_epi64(_mm_add_epi64(row1l, b0), row2l); \
-  row1h = _mm_add_epi64(_mm_add_epi64(row1h, b1), row2h); \
+  row1l = vec_add2sd(vec_add2sd(row1l, b0), row2l); \
+  row1h = vec_add2sd(vec_add2sd(row1h, b1), row2h); \
   \
-  row4l = _mm_xor_si128(row4l, row1l); \
-  row4h = _mm_xor_si128(row4h, row1h); \
+  row4l = vec_bitxor1q(row4l, row1l); \
+  row4h = vec_bitxor1q(row4h, row1h); \
   \
   row4l = _mm_roti_epi64(row4l, -32); \
   row4h = _mm_roti_epi64(row4h, -32); \
   \
-  row3l = _mm_add_epi64(row3l, row4l); \
-  row3h = _mm_add_epi64(row3h, row4h); \
+  row3l = vec_add2sd(row3l, row4l); \
+  row3h = vec_add2sd(row3h, row4h); \
   \
-  row2l = _mm_xor_si128(row2l, row3l); \
-  row2h = _mm_xor_si128(row2h, row3h); \
+  row2l = vec_bitxor1q(row2l, row3l); \
+  row2h = vec_bitxor1q(row2h, row3h); \
   \
   row2l = _mm_roti_epi64(row2l, -24); \
   row2h = _mm_roti_epi64(row2h, -24); \
 
 #define G2(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h,b0,b1) \
-  row1l = _mm_add_epi64(_mm_add_epi64(row1l, b0), row2l); \
-  row1h = _mm_add_epi64(_mm_add_epi64(row1h, b1), row2h); \
+  row1l = vec_add2sd(vec_add2sd(row1l, b0), row2l); \
+  row1h = vec_add2sd(vec_add2sd(row1h, b1), row2h); \
   \
-  row4l = _mm_xor_si128(row4l, row1l); \
-  row4h = _mm_xor_si128(row4h, row1h); \
+  row4l = vec_bitxor1q(row4l, row1l); \
+  row4h = vec_bitxor1q(row4h, row1h); \
   \
   row4l = _mm_roti_epi64(row4l, -16); \
   row4h = _mm_roti_epi64(row4h, -16); \
   \
-  row3l = _mm_add_epi64(row3l, row4l); \
-  row3h = _mm_add_epi64(row3h, row4h); \
+  row3l = vec_add2sd(row3l, row4l); \
+  row3h = vec_add2sd(row3h, row4h); \
   \
-  row2l = _mm_xor_si128(row2l, row3l); \
-  row2h = _mm_xor_si128(row2h, row3h); \
+  row2l = vec_bitxor1q(row2l, row3l); \
+  row2h = vec_bitxor1q(row2h, row3h); \
   \
   row2l = _mm_roti_epi64(row2l, -63); \
   row2h = _mm_roti_epi64(row2h, -63); \
@@ -118,10 +120,10 @@
   row4l = row3l;\
   row3l = row3h;\
   row3h = row4l;\
-  row4l = _mm_unpackhi_epi64(row4h, _mm_unpacklo_epi64(t0, t0)); \
-  row4h = _mm_unpackhi_epi64(t0, _mm_unpacklo_epi64(row4h, row4h)); \
-  row2l = _mm_unpackhi_epi64(row2l, _mm_unpacklo_epi64(row2h, row2h)); \
-  row2h = _mm_unpackhi_epi64(row2h, _mm_unpacklo_epi64(t1, t1))
+  row4l = vec_unpackhigh1sd(row4h, vec_unpacklow1sd(t0, t0)); \
+  row4h = vec_unpackhigh1sd(t0, vec_unpacklow1sd(row4h, row4h)); \
+  row2l = vec_unpackhigh1sd(row2l, vec_unpacklow1sd(row2h, row2h)); \
+  row2h = vec_unpackhigh1sd(row2h, vec_unpacklow1sd(t1, t1))
 
 #define UNDIAGONALIZE(row1l,row2l,row3l,row4l,row1h,row2h,row3h,row4h) \
   t0 = row3l;\
@@ -129,10 +131,10 @@
   row3h = t0;\
   t0 = row2l;\
   t1 = row4l;\
-  row2l = _mm_unpackhi_epi64(row2h, _mm_unpacklo_epi64(row2l, row2l)); \
-  row2h = _mm_unpackhi_epi64(t0, _mm_unpacklo_epi64(row2h, row2h)); \
-  row4l = _mm_unpackhi_epi64(row4l, _mm_unpacklo_epi64(row4h, row4h)); \
-  row4h = _mm_unpackhi_epi64(row4h, _mm_unpacklo_epi64(t1, t1))
+  row2l = vec_unpackhigh1sd(row2h, vec_unpacklow1sd(row2l, row2l)); \
+  row2h = vec_unpackhigh1sd(t0, vec_unpacklow1sd(row2h, row2h)); \
+  row4l = vec_unpackhigh1sd(row4l, vec_unpacklow1sd(row4h, row4h)); \
+  row4h = vec_unpackhigh1sd(row4h, vec_unpacklow1sd(t1, t1))
 
 #endif
 
