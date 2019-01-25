@@ -25,21 +25,8 @@
 
 
 /* Microarchitecture-specific macros */
-#ifndef HAVE_XOP
-#ifdef HAVE_SSSE3
-#define _mm_roti_epi64(x, c) \
-    (-(c) == 32) ? _mm_shuffle_epi32((x), _MM_SHUFFLE(2,3,0,1))  \
-    : (-(c) == 24) ? _mm_shuffle_epi8((x), r24) \
-    : (-(c) == 16) ? _mm_shuffle_epi8((x), r16) \
-    : (-(c) == 63) ? vec_bitxor1q(_mm_srli_epi64((x), -(c)), vec_add2sd((x), (x)))  \
-    : vec_bitxor1q(_mm_srli_epi64((x), -(c)), _mm_slli_epi64((x), 64-(-(c))))
-#else
-#define _mm_roti_epi64(r, c) vec_bitxor1q(_mm_srli_epi64( (r), -(c) ),_mm_slli_epi64( (r), 64-(-(c)) ))
-#endif
-#else
-/* ... */
-#endif
 #ifdef __VSX__
+#define _mm_roti_epi64(r, c) vec_bitxor1q(_mm_srli_epi64( (r), -(c) ),_mm_slli_epi64( (r), 64-(-(c)) ))
 #define _mm_roti_epi64(r, c) vec_bitxor1q(vec_shiftrightimmediate2sd( (r), -(c) ),vec_shiftleftimmediate2sd( (r), 64-(-(c)) ))
 #endif
 
