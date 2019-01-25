@@ -15,11 +15,11 @@
 #ifndef BLAKE2B_ROUND_H
 #define BLAKE2B_ROUND_H
 
-#define LOADU(p)  _mm_loadu_si128( (const __m128i *)(p) )
-#define STOREU(p,r) _mm_storeu_si128((__m128i *)(p), r)
+#define LOADU(p)  vec_loadu1q( (const __m128i *)(p) )
+#define STOREU(p,r) vec_storeu1q((__m128i *)(p), r)
 
-#define TOF(reg) _mm_castsi128_ps((reg))
-#define TOI(reg) _mm_castps_si128((reg))
+#define TOF(reg) vec_cast4spto1q((reg))
+#define TOI(reg) vec_cast4spto1q((reg))
 
 #define LIKELY(x) __builtin_expect((x),1)
 
