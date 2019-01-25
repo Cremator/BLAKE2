@@ -25,7 +25,7 @@
 #ifdef _MSC_VER
 #include <intrin.h> /* for _mm_set_epi64x */
 #endif
-#include <vec128int.h>
+#include vec128int.h
 #if defined(HAVE_SSSE3)
 #include <tmmintrin.h>
 #endif
